@@ -179,7 +179,7 @@
                 </div>
 
                 <div class="search-box ai-search">
-                    <h3 style="margin:0 0 5px 0; color:#4da6ff;">חיפוש מטבעות לחיזוי AI</h3>
+                    <h3 style="margin:0 0 5px 0; color:#4da6ff;">חיפוש נכסי AI (MySQL)</h3>
                     <div class="search-input-group">
                         <input type="text" id="ai_asset_input" placeholder="לדוגמה: BTC, ETH" onfocus="toggleAiDropdown(true)" oninput="filterAiDropdown()">
                         <div id="ai_dropdown_list" class="dropdown-list"></div>
@@ -242,6 +242,13 @@
                                 <div class="data-box" id="box_current_price">מחיר נוכחי<br><strong id="current_price" style="font-size:24px;">--</strong></div>
                                 <div class="data-box" id="box_predicted_price" style="display: none;">תחזית AI<br><strong id="predicted_price" style="font-size:24px;">--</strong></div>
                                 <div class="data-box" id="box_recommended_action" style="display: none;">המלצה<br><strong id="recommended_action" style="font-size:24px;">--</strong></div>
+                            </div>
+                            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #aaa; font-size: 14px;">בחר טווח זמן לחיזוי ולגרף:</span>
+                                <select id="prediction_timeframe" style="padding: 8px; border-radius: 5px; background-color: #2a2a2a; color: white; border: 1px solid #444;" onchange="loadAiHistory()">
+                                    <option value="1d">24 שעות קדימה (1D)</option>
+                                    <option value="4h">4 שעות קדימה (4H)</option>
+                                </select>
                             </div>
                             <button id="btn_generate" class="primary-btn" style="width:auto; padding:10px 30px;" onclick="generatePrediction()">הפעל חיזוי AI 🚀</button>
 
@@ -649,7 +656,8 @@
 
             try {
                 const binanceSymbol = currentAsset.toUpperCase() + "USDT";
-                const binanceUrl = `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=1d&limit=60`;
+                const timeframe = document.getElementById('prediction_timeframe') ? document.getElementById('prediction_timeframe').value : '1d';
+                const binanceUrl = `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=${timeframe}&limit=60`;
 
                 const res = await fetch(binanceUrl);
                 const data = await res.json();
@@ -749,10 +757,12 @@
 
         async function generatePrediction() {
             if(!currentAsset) return;
+            const timeframe = document.getElementById('prediction_timeframe').value;
             const btn = document.getElementById('btn_generate');
             btn.innerText = "מפעיל מודל, אנא המתן..."; btn.disabled = true;
             try {
-                await fetch(`${API_BASE}/predictions/${currentAsset.toLowerCase()}`);
+                // הוספנו את ה-timeframe בסוף שורת הבקשה ל-Java
+                await fetch(`${API_BASE}/predictions/${currentAsset.toLowerCase()}?timeframe=${timeframe}`);
                 await loadAiHistory();
                 document.getElementById('box_predicted_price').style.display = 'block';
                 document.getElementById('box_recommended_action').style.display = 'block';
