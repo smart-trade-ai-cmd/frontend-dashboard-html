@@ -189,8 +189,11 @@
 
             <div class="workspace">
                 <div class="sidebar">
-                    <h3 style="margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px;">רשימת המעקב (AI)</h3>
-                    <div id="watchlist_items" style="color: #888; font-size: 14px;">טוען רשימה...</div>
+                    <h3 style="margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #4da6ff;">🤖 נכסי AI (קריפטו)</h3>
+                    <div id="watchlist_items_ai" style="color: #888; font-size: 14px; margin-bottom: 30px;">טוען...</div>
+
+                    <h3 style="margin-top:0; border-bottom: 1px solid #333; padding-bottom: 10px; color: #ffb300;">📈 מניות גלובליות</h3>
+                    <div id="watchlist_items_stocks" style="color: #888; font-size: 14px;">טוען...</div>
                 </div>
 
                 <div class="main-content">
@@ -538,22 +541,52 @@
         }
 
         async function loadWatchlist() {
-            const response = await fetch(`${API_BASE}/watchlist/${currentUser.id}`);
-            const assets = await response.json();
-            const listDiv = document.getElementById('watchlist_items');
-            listDiv.innerHTML = '';
-            userWatchlistSymbols = assets.map(a => a.symbol.toUpperCase());
+            try {
+                const response = await fetch(`${API_BASE}/watchlist/${currentUser.id}`);
+                const assets = await response.json();
 
-            if(assets.length === 0) { listDiv.innerHTML = "הרשימה ריקה."; }
-            else {
-                assets.forEach(asset => {
-                    const item = document.createElement('div');
-                    item.className = 'watchlist-item';
-                    item.innerHTML = `<strong onclick="openAiAssetView('${asset.symbol}')">${asset.symbol}</strong><button class="delete-btn" onclick="deleteAsset('${asset.symbol}', event)">✖</button>`;
-                    listDiv.appendChild(item);
-                });
+                const listAiDiv = document.getElementById('watchlist_items_ai');
+                const listStocksDiv = document.getElementById('watchlist_items_stocks');
+
+                listAiDiv.innerHTML = '';
+                listStocksDiv.innerHTML = '';
+                userWatchlistSymbols = assets.map(a => a.symbol.toUpperCase());
+
+                if(assets.length === 0) {
+                    listAiDiv.innerHTML = "הרשימה ריקה.";
+                    listStocksDiv.innerHTML = "הרשימה ריקה.";
+                } else {
+                    let aiCount = 0;
+                    let stockCount = 0;
+
+                    assets.forEach(asset => {
+                        const symbol = asset.symbol.toUpperCase();
+                        const isAiAsset = availableAiAssets.some(a => a.code === symbol);
+
+                        const item = document.createElement('div');
+                        item.className = 'watchlist-item';
+
+                        // קריאה לפונקציית הניתוב שבנינו קודם (handleWatchlistClick)
+                        item.innerHTML = `<strong onclick="handleWatchlistClick('${symbol}')">${symbol}</strong>
+                                          <button class="delete-btn" onclick="deleteAsset('${symbol}', event)">✖</button>`;
+
+                        if (isAiAsset) {
+                            listAiDiv.appendChild(item);
+                            aiCount++;
+                        } else {
+                            listStocksDiv.appendChild(item);
+                            stockCount++;
+                        }
+                    });
+
+                    // הודעות במקרה שאחת הרשימות ספציפית ריקה
+                    if(aiCount === 0) listAiDiv.innerHTML = "אין נכסי AI במעקב.";
+                    if(stockCount === 0) listStocksDiv.innerHTML = "אין מניות במעקב.";
+                }
+                updateAddButtonVisibility();
+            } catch (err) {
+                console.error("שגיאה בטעינת רשימת המעקב", err);
             }
-            updateAddButtonVisibility();
         }
 
         async function addCurrentToWatchlist() {
