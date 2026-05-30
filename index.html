@@ -589,6 +589,22 @@
             }
         }
 
+        // פונקציה שמחליטה לאיזה מסך לנווט לפי סוג הנכס (קריפטו או מניה)
+        function handleWatchlistClick(symbol) {
+            const isAiAsset = availableAiAssets.some(asset => asset.code === symbol.toUpperCase());
+
+            if (isAiAsset) {
+                // קריפטו -> מסך AI
+                openAiAssetView(symbol);
+            } else {
+                // מניה -> מסך Alpha Vantage
+                const foundStock = globalStocks.find(s => s.symbol === symbol.toUpperCase());
+                const stockName = foundStock ? foundStock.name : "Stock Asset";
+                switchPage('dashboard');
+                fetchLiveStock(symbol, stockName);
+            }
+        }
+
         async function addCurrentToWatchlist() {
             try { await fetch(`${API_BASE}/watchlist/${currentUser.id}/add?symbol=${currentAsset}`, { method: 'POST' }); loadWatchlist(); } catch (err) {}
         }
