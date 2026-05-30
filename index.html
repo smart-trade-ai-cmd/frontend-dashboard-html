@@ -280,7 +280,15 @@
                         <div class="dashboard-card" id="history_card">
                             <h3 style="text-align:right; margin-top:0; color:#aaa;">היסטוריית תחזיות (MySQL)</h3>
                             <table>
-                                <thead><tr><th>זמן</th><th>מחיר כניסה</th><th>מחיר חזוי</th><th>כיוון</th><th>סטטוס</th></tr></thead>
+                                <thead>
+                                <tr>
+                                    <th>זמן</th>
+                                    <th>טווח</th> <th>מחיר כניסה</th>
+                                    <th>מחיר חזוי</th>
+                                    <th>כיוון</th>
+                                    <th>סטטוס</th>
+                                </tr>
+                                </thead>
                                 <tbody id="history_table_body"></tbody>
                             </table>
                         </div>
@@ -715,7 +723,16 @@
                     let statusHebrew = row.status === 'CORRECT' ? '🎯 צדק' : (row.status === 'WRONG' ? '❌ טעה' : 'בהמתנה');
                     let dirText = row.trend === 'UP' ? 'BUY ⬆' : 'SELL ⬇';
                     let dirColor = row.trend === 'UP' ? '#00e676' : '#ff5252';
-                    tr.innerHTML = `<td>${row.predictionTime.replace('T', ' ').substring(5,16)}</td><td>$${row.currentPrice}</td><td>$${row.predictedPrice}</td><td style="color:${dirColor}; font-weight:bold;">${dirText}</td><td><span class="status-badge status-${row.status}">${statusHebrew}</span></td>`;
+
+                    // בדיקה למניעת ערך ריק עבור שורות ישנות במסד הנתונים
+                    let timeframeText = row.timeframe ? row.timeframe.toUpperCase() : '4H';
+
+                    tr.innerHTML = `<td>${row.predictionTime.replace('T', ' ').substring(5,16)}</td>
+                                    <td style="color:#ffb300; font-weight:bold;">${timeframeText}</td>
+                                    <td>$${row.currentPrice}</td>
+                                    <td>$${row.predictedPrice}</td>
+                                    <td style="color:${dirColor}; font-weight:bold;">${dirText}</td>
+                                    <td><span class="status-badge status-${row.status}">${statusHebrew}</span></td>`;
                     tbody.appendChild(tr);
                 });
             } catch(e) { console.error("שגיאה במשיכת MySQL", e); }
